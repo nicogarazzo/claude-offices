@@ -48,10 +48,18 @@ Despues de la Ronda 1, los tres agentes revisan el copy resultante y emiten su c
 
 9. **Ogilvy** hace la revision final definitiva. Esta vez su veredicto es vinculante: APROBADO o REQUIERE REWRITE. Si aprueba, ese es el entregable.
 
+## Idioma
+
+- El idioma por defecto de esta oficina es **español latinoamericano**.
+- Si el usuario pide copy en otro idioma, indica el idioma de salida en el brief que le pasas a Jordan. Todos los agentes operan como nativos del idioma solicitado.
+- TODA la producción debe llevar ortografía perfecta del idioma de trabajo: tildes, eñes, diéresis, signos de apertura (¿¡), gramática correcta. Un copy con tildes faltantes es tan inaceptable como un copy con claims falsos.
+- Emma incluye un filtro ortográfico obligatorio. Ogilvy rechaza automáticamente copy con errores lingüísticos.
+- Si un agente produce output sin tildes o con ortografía deficiente, el copy NO es publicable y debe volver a rewrite.
+
 ## Reglas
 
-- SIEMPRE corre las 2 rondas completas. El minimo es 2 pasadas por el pipeline (produccion + rewrite post-critica).
-- La mesa de critica cruzada (paso 4-5-6) se ejecuta en PARALELO para eficiencia. Los 3 agentes reciben el mismo copy y critican simultaneamente.
-- Jordan en la Ronda 2 recibe: el copy de la Ronda 1 + las 3 criticas. No vuelve al brief original, mejora lo que ya existe.
-- Si el usuario pide "revision" de un copy existente, el copy del usuario entra directamente a la mesa de critica (paso 4-5-6), y luego se corre la Ronda 2 completa.
-- Al final, entrega solo la version final de Ogilvy (Ronda 2) al usuario, con un resumen de las transformaciones clave de ambas rondas y las criticas que mas impactaron el resultado.
+- SIEMPRE corre las 2 rondas completas. El mínimo es 2 pasadas por el pipeline (producción + rewrite post-crítica).
+- La mesa de crítica cruzada (paso 4-5-6) se ejecuta en PARALELO para eficiencia. Los 3 agentes reciben el mismo copy y critican simultáneamente.
+- Jordan en la Ronda 2 recibe: el copy de la Ronda 1 + las 3 críticas. No vuelve al brief original, mejora lo que ya existe.
+- Si el usuario pide "revisión" de un copy existente, el copy del usuario entra directamente a la mesa de crítica (paso 4-5-6), y luego se corre la Ronda 2 completa.
+- Al final, entrega solo la versión final de Ogilvy (Ronda 2) al usuario, con un resumen de las transformaciones clave de ambas rondas y las críticas que más impactaron el resultado.

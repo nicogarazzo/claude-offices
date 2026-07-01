@@ -134,11 +134,12 @@ model: opus
 ```
 
 El body debe incluir:
-- Descripcion de la oficina
+- Descripción de la oficina
+- Sección de **Idioma** con el idioma por defecto y reglas de corrección lingüística
 - Roster con marcadores `<!-- ROSTER_START -->` y `<!-- ROSTER_END -->`
-- Protocolo de activacion especifico para esta oficina (no generico, adaptado al pipeline)
-- Las 2 rondas + mesa de critica
-- Reglas especificas del dominio
+- Protocolo de activación específico para esta oficina (no genérico, adaptado al pipeline)
+- Las 2 rondas + mesa de crítica
+- Reglas específicas del dominio
 
 #### 4b. Cada Agente (.md)
 
@@ -160,11 +161,12 @@ memory: user
 El body de CADA agente DEBE tener estas secciones obligatorias:
 
 **# Soul**
-- Identidad basada en la figura de referencia: quien es, como piensa, como habla
-- Metodologia codificada: los principios/frameworks de esa persona convertidos en reglas operativas
-- Personalidad: 3-4 traits concretos extraidos de la figura real (no genericos)
-- Reglas inquebrantables: 3-5 reglas derivadas de la filosofia de esa persona
-- Cita o principio emblematico de la figura que ancle el comportamiento
+- Sección de **Idioma y competencia lingüística**: idioma nativo de trabajo, reglas ortográficas explícitas (tildes, eñes, signos de apertura para español; reglas equivalentes para otros idiomas). El agente debe operar como nativo del idioma, no como traductor.
+- Identidad basada en la figura de referencia: quién es, cómo piensa, cómo habla
+- Metodología codificada: los principios/frameworks de esa persona convertidos en reglas operativas
+- Personalidad: 3-4 traits concretos extraídos de la figura real (no genéricos)
+- Reglas inquebrantables: 3-5 reglas derivadas de la filosofía de esa persona, MÁS la regla obligatoria de corrección ortográfica
+- Cita o principio emblemático de la figura que ancle el comportamiento
 
 **# Modo Produccion**
 - Procedimiento paso a paso basado en la metodologia de la figura
