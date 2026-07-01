@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Offices - Documentation</title>
+<style>
+  :root {
+    --purple: #a87eff;
+    --purple-fill: #8c4aec;
+    --purple-glow: rgba(168, 126, 255, 0.18);
+    --purple-border: rgba(168, 126, 255, 0.35);
+    --black: #0a0a0a;
+    --dark: #141414;
+    --card: #1c1c1c;
+    --white: #fefefe;
+    --gray: #2e2e2e;
+    --gray-mid: #717171;
+    --gray-light: #a0a0a0;
+    --text: #e8e8e8;
+    --text-dim: #a0a0a0;
+    --green: #22c55e;
+    --green-glow: rgba(34, 197, 94, 0.15);
+    --amber: #f59e0b;
+    --amber-glow: rgba(245, 158, 11, 0.15);
+    --radius: 14px;
+    --radius-sm: 9px;
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: var(--black);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+
+  /* Header */
+  header {
+    text-align: center;
+    padding: 80px 24px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(140,74,236,0.22) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--purple-border), transparent);
+  }
+  .logo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--purple);
+    margin-bottom: 20px;
+    position: relative;
+  }
+  h1 {
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1.15;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  h1 em { font-style: normal; color: var(--purple); }
+  .subtitle {
+    font-size: 17px;
+    color: var(--text-dim);
+    max-width: 560px;
+    margin: 0 auto;
+    font-weight: 400;
+    position: relative;
+  }
+
+  /* Nav */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--dark);
+    border-bottom: 1px solid var(--gray);
+    padding: 0 24px;
+  }
+  nav .container {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav a {
+    display: block;
+    padding: 14px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  nav a:hover, nav a.active {
+    color: var(--purple);
+    border-bottom-color: var(--purple);
+  }
+
+  /* Sections */
+  section {
+    padding: 56px 0;
+    border-bottom: 1px solid var(--gray);
+  }
+  section:last-of-type { border-bottom: none; }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--gray);
+  }
+
+  h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 12px;
+  }
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--white);
+    margin-top: 32px;
+    margin-bottom: 12px;
+  }
+  h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--purple);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 24px;
+    margin-bottom: 8px;
+  }
+
+  p { margin-bottom: 16px; }
+  p + p { margin-top: 0; }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border: 1.5px solid var(--gray);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s var(--ease);
+  }
+  .card:hover { border-color: var(--purple-border); }
+  .card h4 { margin-top: 0; }
+
+  /* Pipeline diagram */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 24px 0;
+  }
+  .pipeline-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .pipeline-step {
+    background: var(--card);
+    border: 1.5px solid var(--gray);
+    border-radius: var(--radius-sm);
+    padding: 14px 20px;
+    flex: 1;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .pipeline-step.active {
+    border-color: var(--purple);
+    background: var(--purple-glow);
+    color: var(--white);
+  }
+  .pipeline-step.critique {
+    border-color: var(--amber);
+    background: var(--amber-glow);
+    color: var(--amber);
+    font-size: 12px;
+  }
+  .pipeline-arrow {
+    display: flex;
+    justify-content: center;
+    padding: 6px 0;
+    color: var(--gray-mid);
+    font-size: 18px;
+  }
+  .pipeline-parallel {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  @media (max-width: 640px) {
+    .pipeline-parallel { grid-template-columns: 1fr; }
+  }
+
+  /* Code blocks */
+  pre {
+    background: var(--dark);
+    border: 1px solid var(--gray);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+    overflow-x: auto;
+    margin: 16px 0;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  code {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 13px;
+  }
+  p code, li code {
+    background: var(--dark);
+    border: 1px solid var(--gray);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 12px;
+    color: var(--purple);
+  }
+
+  /* Lists */
+  ul, ol { padding-left: 20px; margin-bottom: 16px; }
+  li { margin-bottom: 6px; }
+
+  /* File tree */
+  .file-tree {
+    background: var(--dark);
+    border: 1px solid var(--gray);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    margin: 16px 0;
+    color: var(--text-dim);
+  }
+  .file-tree .dir { color: var(--purple); font-weight: 600; }
+  .file-tree .file { color: var(--text); }
+  .file-tree .comment { color: var(--gray-mid); }
+
+  /* Agent cards */
+  .agent-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 24px 0;
+  }
+  @media (max-width: 720px) { .agent-grid { grid-template-columns: 1fr; } }
+  .agent-card {
+    background: var(--card);
+    border: 1.5px solid var(--gray);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .agent-card:hover { border-color: var(--purple-border); }
+  .agent-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--purple);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+  .agent-role {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+  .agent-desc { font-size: 13px; color: var(--text); line-height: 1.5; }
+
+  /* Mode badges */
+  .mode-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 3px 10px;
+    border-radius: 99px;
+    text-transform: uppercase;
+  }
+  .mode-production {
+    background: var(--green-glow);
+    color: var(--green);
+    border: 1px solid rgba(34,197,94,0.3);
+  }
+  .mode-critique {
+    background: var(--amber-glow);
+    color: var(--amber);
+    border: 1px solid rgba(245,158,11,0.3);
+  }
+
+  /* CTA */
+  .cta-section {
+    background: linear-gradient(135deg, #1a0d2e 0%, #0f0a1a 100%);
+    border: 1.5px solid var(--purple-border);
+    border-radius: var(--radius);
+    padding: 40px;
+    text-align: center;
+    margin: 40px 0;
+  }
+  .cta-section h3 { margin-top: 0; }
+  .cta-btn {
+    display: inline-block;
+    background: var(--purple-fill);
+    color: var(--white);
+    padding: 14px 32px;
+    border-radius: 100px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    margin-top: 16px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .cta-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 32px rgba(168,126,255,0.45);
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 32px 24px;
+    font-size: 13px;
+    color: var(--gray-mid);
+    border-top: 1px solid var(--gray);
+  }
+  footer strong { color: var(--text-dim); }
+
+  /* Concept card (Soul / Skills / Offices) */
+  .concept-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 24px 0;
+  }
+  @media (max-width: 720px) { .concept-grid { grid-template-columns: 1fr; } }
+  .concept-card {
+    background: var(--card);
+    border: 1.5px solid var(--gray);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+  .concept-card .icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+  .concept-card h4 {
+    margin-top: 0;
+    font-size: 16px;
+  }
+  .concept-card p {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 0;
+  }
+
+  /* Inline instructions */
+  .instructions {
+    background: var(--card);
+    border: 1.5px solid var(--purple-border);
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 13px;
+    color: var(--text-dim);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin: 16px 0;
+  }
+  .instructions .icon-inline { color: var(--purple); font-size: 18px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-badge">Claude Offices</div>
+  <h1>Build <em>Offices</em> for<br>Claude Code</h1>
+  <p class="subtitle">Create teams of specialized AI agents with structured quality pipelines. Based on the Soul + Skills architecture from Hermes Agent (Nous Research), adapted for Claude Code's native skill and sub-agent system.</p>
+</header>
+
+<nav>
+  <div class="container">
+    <a href="#concepts">Concepts</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#quickstart">Quick Start</a>
+    <a href="#cli">CLI Reference</a>
+    <a href="#natural-language">Natural Language</a>
+    <a href="#example">Example Office</a>
+  </div>
+</nav>
+
+<div class="container">
+
+<!-- CONCEPTS -->
+<section id="concepts">
+  <div class="section-title">Core Concepts</div>
+  <h2>Three building blocks</h2>
+  <p>Based on the <strong style="color:var(--white)">Soul + Skills architecture</strong> from <a href="https://github.com/NousResearch/hermes-agent" style="color:var(--purple); text-decoration:none;">Hermes Agent</a> (Nous Research). The Soul gives each agent a persistent identity modeled after real domain experts. Skills act as office dispatchers that orchestrate the team.</p>
+
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="icon">&#9670;</div>
+      <h4>Office</h4>
+      <p>A team of agents organized around a domain. Each office is a Claude Code Skill that acts as a dispatcher, routing tasks to the right agent and orchestrating the quality pipeline.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">&#9673;</div>
+      <h4>Soul</h4>
+      <p>Each agent has a persistent identity: personality, voice, principles, and domain expertise. The Soul defines WHO the agent is, not just what it does. It travels with the agent across every invocation.</p>
+    </div>
+    <div class="concept-card">
+      <div class="icon">&#8644;</div>
+      <h4>Two Modes</h4>
+      <p>Every agent operates in two modes: Production (create/transform work) and Critique (evaluate work from their specialty). This duality enables the iterative quality pipeline.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <div class="section-title">Architecture</div>
+  <h2>Hermes Agent → Claude Code mapping</h2>
+
+  <div class="card">
+    <h4>From Hermes to Claude Code</h4>
+    <table style="width:100%; font-size:14px; border-collapse:collapse;">
+      <tr style="border-bottom:1px solid var(--gray);">
+        <td style="padding:10px 0; color:var(--purple); font-weight:600; width:30%;">Hermes Concept</td>
+        <td style="padding:10px 0; color:var(--text-dim); width:25%;">Claude Offices</td>
+        <td style="padding:10px 0;">Claude Code Primitive</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--gray);">
+        <td style="padding:10px 0; color:var(--text-dim);">SOUL.md</td>
+        <td style="padding:10px 0;">Agent Soul</td>
+        <td style="padding:10px 0;"><code>.md</code> body (system prompt)</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--gray);">
+        <td style="padding:10px 0; color:var(--text-dim);">Skills</td>
+        <td style="padding:10px 0;">Office Skill</td>
+        <td style="padding:10px 0;"><code>~/.claude/skills/&lt;office&gt;/SKILL.md</code></td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--gray);">
+        <td style="padding:10px 0; color:var(--text-dim);">Profiles</td>
+        <td style="padding:10px 0;">Sub-agents</td>
+        <td style="padding:10px 0;"><code>~/.claude/agents/&lt;office&gt;/&lt;agent&gt;.md</code></td>
+      </tr>
+      <tr>
+        <td style="padding:10px 0; color:var(--text-dim);">Kanban routing</td>
+        <td style="padding:10px 0;">2-round pipeline</td>
+        <td style="padding:10px 0;"><code>allowed-tools: Agent(...)</code></td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>File structure</h3>
+  <div class="file-tree">
+    <span class="dir">claude-offices/</span><br>
+    &nbsp;&nbsp;<span class="file">swarm</span> <span class="comment"># CLI tool (bash)</span><br>
+    &nbsp;&nbsp;<span class="dir">templates/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">office-skill.md</span> <span class="comment"># Template for new offices</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">agent.md</span> <span class="comment"># Template for new agents</span><br>
+    &nbsp;&nbsp;<span class="dir">skills/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">oficina-creator/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">SKILL.md</span> <span class="comment"># NL creator with expert research</span><br>
+    &nbsp;&nbsp;<span class="dir">offices/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">oficina-copywriting/</span> <span class="comment"># Example office</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">SKILL.md</span> <span class="comment"># Dispatcher skill</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">agents/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">jordan-belfort.md</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">emma-stratton.md</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">ogilvy.md</span><br>
+  </div>
+
+  <div class="instructions">
+    <span class="icon-inline">&#9432;</span>
+    <span>When you run <code>./swarm install</code>, offices are copied to <code>~/.claude/skills/</code> and <code>~/.claude/agents/</code>. Claude Code detects them on the next session start.</span>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section id="pipeline">
+  <div class="section-title">Quality Pipeline</div>
+  <h2>Every office runs 2 rounds</h2>
+  <p>No deliverable leaves an office without passing through at least 2 production rounds and a cross-critique session. This is the standard contract for every office, regardless of domain.</p>
+
+  <div class="pipeline">
+    <div class="pipeline-row" style="justify-content:center;">
+      <div style="font-size:11px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.1em;">Round 1: Production</div>
+    </div>
+    <div class="pipeline-arrow">&#8595;</div>
+    <div class="pipeline-row">
+      <div class="pipeline-step active">Agent A <span class="mode-badge mode-production" style="margin-left:6px;">produces</span></div>
+    </div>
+    <div class="pipeline-arrow">&#8595;</div>
+    <div class="pipeline-row">
+      <div class="pipeline-step active">Agent B <span class="mode-badge mode-production" style="margin-left:6px;">produces</span></div>
+    </div>
+    <div class="pipeline-arrow">&#8595;</div>
+    <div class="pipeline-row">
+      <div class="pipeline-step active">Agent C <span class="mode-badge mode-production" style="margin-left:6px;">produces</span></div>
+    </div>
+
+    <div class="pipeline-arrow">&#8595;</div>
+    <div class="pipeline-row" style="justify-content:center;">
+      <div style="font-size:11px; font-weight:700; color:var(--amber); text-transform:uppercase; letter-spacing:0.1em;">Cross-Critique Table (parallel)</div>
+    </div>
+    <div class="pipeline-arrow">&#8595;</div>
+    <div class="pipeline-parallel">
+      <div class="pipeline-step critique">Agent A <span class="mode-badge mode-critique" style="margin-left:6px;">critiques</span></div>
+      <div class="pipeline-step critique">Agent B <span class="mode-badge mode-critique" style="margin-left:6px;">critiques</span></div>
+      <div class="pipeline-step critique">Agent C <span class="mode-badge mode-critique" style="margin-left:6px;">critiques</span></div>
+    </div>
+
+    <div class="pipeline-arrow">&#8595;</div>
+    <div class="pipeline-row" style="justify-content:center;">
+      <div style="font-size:11px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.1em;">Round 2: Rewrite with feedback</div>
+    </div>
+    <div class="pipeline-arrow">&#8595;</div>
+    <div class="pipeline-row">
+      <div class="pipeline-step active">Agent A <span class="mode-badge mode-production" style="margin-left:6px;">rewrites</span></div>
+    </div>
+    <div class="pipeline-arrow">&#8595;</div>
+    <div class="pipeline-row">
+      <div class="pipeline-step active">Agent B <span class="mode-badge mode-production" style="margin-left:6px;">refines</span></div>
+    </div>
+    <div class="pipeline-arrow">&#8595;</div>
+    <div class="pipeline-row">
+      <div class="pipeline-step" style="border-color:var(--green); background:var(--green-glow); color:var(--green); font-weight:700;">Agent C: Final Verdict</div>
+    </div>
+  </div>
+</section>
+
+<!-- QUICKSTART -->
+<section id="quickstart">
+  <div class="section-title">Quick Start</div>
+  <h2>Up and running in 3 commands</h2>
+
+  <h3>1. Clone and install</h3>
+  <pre><code>git clone https://github.com/nicogarazzo/claude-offices.git
+cd claude-offices
+./swarm install</code></pre>
+
+  <h3>2. Create your first office</h3>
+  <pre><code># Using the CLI
+./swarm new-office oficina-research "Deep research and analysis team"
+./swarm add-agent oficina-research analyst "Primary research and data gathering"
+./swarm add-agent oficina-research synthesizer "Connects findings into insights"
+./swarm add-agent oficina-research critic "Validates methodology and conclusions"
+
+# Edit each agent's .md file to customize the Soul
+# Then install
+./swarm install</code></pre>
+
+  <h3>3. Or use natural language</h3>
+  <pre><code># In any Claude Code session, after installing:
+/oficina-creator
+
+"Create a UX research office with a user researcher,
+ a wireframer, and a usability critic"</code></pre>
+
+  <div class="instructions">
+    <span class="icon-inline">&#9432;</span>
+    <span>After <code>./swarm install</code>, restart Claude Code so it detects the new skills and agents. Your offices will appear as available skills (e.g., <code>/oficina-research</code>).</span>
+  </div>
+</section>
+
+<!-- CLI -->
+<section id="cli">
+  <div class="section-title">CLI Reference</div>
+  <h2>The <code>swarm</code> command</h2>
+
+  <div class="card">
+    <h4>new-office</h4>
+    <pre><code>./swarm new-office &lt;name&gt; "description"</code></pre>
+    <p style="margin-bottom:0;">Creates a new office directory with a SKILL.md template that includes the 2-round pipeline protocol.</p>
+  </div>
+
+  <div class="card">
+    <h4>add-agent</h4>
+    <pre><code>./swarm add-agent &lt;office&gt; &lt;agent-name&gt; "description"</code></pre>
+    <p style="margin-bottom:0;">Adds an agent to an office with both Production and Critique modes scaffolded. Auto-updates the office roster and allowed-tools.</p>
+  </div>
+
+  <div class="card">
+    <h4>remove-agent</h4>
+    <pre><code>./swarm remove-agent &lt;office&gt; &lt;agent-name&gt;</code></pre>
+    <p style="margin-bottom:0;">Removes an agent from an office and updates the roster.</p>
+  </div>
+
+  <div class="card">
+    <h4>list</h4>
+    <pre><code>./swarm list</code></pre>
+    <p style="margin-bottom:0;">Shows all offices, their agents, descriptions, and installation status.</p>
+  </div>
+
+  <div class="card">
+    <h4>install</h4>
+    <pre><code>./swarm install</code></pre>
+    <p style="margin-bottom:0;">Copies all offices to <code>~/.claude/skills/</code> and <code>~/.claude/agents/</code>. Also installs core skills like <code>oficina-creator</code>.</p>
+  </div>
+
+  <div class="card">
+    <h4>uninstall</h4>
+    <pre><code>./swarm uninstall</code></pre>
+    <p style="margin-bottom:0;">Removes all installed offices from <code>~/.claude/</code>.</p>
+  </div>
+
+  <div class="card">
+    <h4>sync</h4>
+    <pre><code>./swarm sync</code></pre>
+    <p style="margin-bottom:0;">Updates the routing table in Claude's project memory so it knows which office to suggest for each task type.</p>
+  </div>
+</section>
+
+<!-- NATURAL LANGUAGE -->
+<section id="natural-language">
+  <div class="section-title">Natural Language Creator</div>
+  <h2>Describe an office, get a team of experts</h2>
+  <p>The <code>/oficina-creator</code> skill lets you describe an office in plain language. It <strong style="color:var(--white)">researches the best domain experts</strong> to model each agent's Soul, presents them for your approval, then generates everything.</p>
+
+  <div class="card">
+    <h4>What you say</h4>
+    <p style="color:var(--white); font-style:italic; margin-bottom:0;">"Create an office for translating technical documents from English to Spanish"</p>
+  </div>
+
+  <div class="card">
+    <h4>What it researches</h4>
+    <p style="margin-bottom:8px; color:var(--text-dim);">Before generating anything, the skill finds the best figures for each role:</p>
+    <ul style="color:var(--text);">
+      <li><strong style="color:var(--white)">Eugene Nida</strong> as first translator: dynamic equivalence theory, meaning over literality</li>
+      <li><strong style="color:var(--white)">Edward Sapir</strong> as cultural reviewer: Sapir-Whorf hypothesis, language shapes thought</li>
+      <li><strong style="color:var(--white)">Umberto Eco</strong> as final editor: "Saying Almost the Same Thing", translation as negotiation</li>
+    </ul>
+    <p style="color:var(--text-dim); margin-bottom:0;">Each figure is selected for their documented methodology, not just fame. Alternatives are considered and the selection is presented before generating.</p>
+  </div>
+
+  <div class="card">
+    <h4>What you get</h4>
+    <p style="margin-bottom:8px; color:var(--text-dim);">A complete <code>oficina-traduccion</code> with:</p>
+    <ul style="color:var(--text);">
+      <li>Agent <code>nida</code> with a Soul encoding dynamic equivalence principles</li>
+      <li>Agent <code>sapir</code> with a Soul encoding cultural-linguistic review methodology</li>
+      <li>Agent <code>eco</code> with a Soul encoding semiotic precision and editorial negotiation</li>
+      <li>Each with Production mode, Critique mode, and structured delivery templates</li>
+      <li>2-round pipeline: Nida translates → Sapir reviews culture → Eco approves. Then all 3 critique in parallel. Then Round 2 with feedback.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- EXAMPLE -->
+<section id="example">
+  <div class="section-title">Example</div>
+  <h2>The Copywriting Office</h2>
+  <p>A complete B2B copywriting pipeline that ships with the project as a reference implementation.</p>
+
+  <div class="agent-grid">
+    <div class="agent-card">
+      <div class="agent-name">Jordan Belfort</div>
+      <div class="agent-role">First Draft Writer</div>
+      <div class="agent-desc">High-energy sales copy. Writes with urgency, focuses on pain points, uses frameworks like AIDA and PAS. In critique mode, evaluates sales force, urgency, and emotional connection.</div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-name">Emma Stratton</div>
+      <div class="agent-role">Punchy Filter</div>
+      <div class="agent-desc">Anti-jargon, anti-fluff editor. Kills corporate speak, enforces short sentences, demands specificity. In critique mode, scores punch, clarity, and residual jargon.</div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-name">Ogilvy</div>
+      <div class="agent-role">Final Reviewer</div>
+      <div class="agent-desc">Precision and elegance. Validates claims, checks persuasive structure, ensures the copy sells without feeling like it sells. Issues the final verdict: APPROVED or REQUIRES REWRITE.</div>
+    </div>
+  </div>
+
+  <h3>Pipeline flow</h3>
+  <p><strong>Round 1:</strong> Jordan drafts with maximum energy. Emma strips jargon and tightens rhythm. Ogilvy reviews structure and passes to critique.</p>
+  <p><strong>Critique:</strong> All three evaluate the Round 1 output in parallel. Jordan flags lost sales energy. Emma catches surviving jargon. Ogilvy checks claims and persuasive arc.</p>
+  <p><strong>Round 2:</strong> Jordan rewrites incorporating all three critiques. Emma re-filters. Ogilvy delivers the final approved version.</p>
+</section>
+
+</div>
+
+<!-- CTA -->
+<div class="container">
+  <div class="cta-section">
+    <h3>Start building your offices</h3>
+    <p style="color:var(--text-dim); margin-bottom:0;">Clone the repo, run <code>./swarm install</code>, and create your first specialized team of agents.</p>
+    <a href="https://github.com/nicogarazzo/claude-offices" class="cta-btn">View on GitHub</a>
+  </div>
+</div>
+
+<footer>
+  <strong>Claude Offices</strong> &middot; Built for Claude Code &middot; Inspired by <a href="https://github.com/NousResearch/hermes-agent" style="color:var(--purple); text-decoration:none;">Hermes Agent</a> (Nous Research) &middot; Open Source
+</footer>
+
+</body>
+</html>

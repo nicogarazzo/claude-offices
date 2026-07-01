@@ -1,0 +1,520 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ─────────────────────────────────────────────────────────────
+# swarm — Claude Offices CLI
+# Build specialized agent teams for Claude Code
+# Based on Soul + Skills from Hermes Agent (Nous Research)
+# ─────────────────────────────────────────────────────────────
+
+SWARM_ROOT="$(cd "$(dirname "$0")" && pwd)"
+OFFICES_DIR="$SWARM_ROOT/offices"
+TEMPLATES_DIR="$SWARM_ROOT/templates"
+CLAUDE_SKILLS="$HOME/.claude/skills"
+CLAUDE_AGENTS="$HOME/.claude/agents"
+CLAUDE_MEMORY="$HOME/.claude/projects"
+
+# Colores
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+DIM='\033[2m'
+NC='\033[0m'
+
+print_header() {
+  echo ""
+  echo -e "${PURPLE}${BOLD}  ◆ Claude Offices${NC}"
+  echo -e "${DIM}  Soul + Skills agent teams for Claude Code${NC}"
+  echo ""
+}
+
+print_success() { echo -e "  ${GREEN}✓${NC} $1"; }
+print_info()    { echo -e "  ${CYAN}→${NC} $1"; }
+print_warn()    { echo -e "  ${YELLOW}!${NC} $1"; }
+print_error()   { echo -e "  ${RED}✗${NC} $1"; }
+
+# ─────────────────────────────────────────────────────────────
+# new-office: Crea una oficina nueva
+# ─────────────────────────────────────────────────────────────
+cmd_new_office() {
+  local name="${1:-}"
+  local description="${2:-}"
+
+  if [[ -z "$name" ]]; then
+    print_error "Uso: swarm new-office <nombre> [\"descripcion\"]"
+    exit 1
+  fi
+
+  local office_dir="$OFFICES_DIR/$name"
+
+  if [[ -d "$office_dir" ]]; then
+    print_error "La oficina '$name' ya existe en $office_dir"
+    exit 1
+  fi
+
+  mkdir -p "$office_dir/agents"
+
+  # Generar SKILL.md desde template
+  local skill_template="$TEMPLATES_DIR/office-skill.md"
+  if [[ ! -f "$skill_template" ]]; then
+    print_error "Template no encontrado: $skill_template"
+    exit 1
+  fi
+
+  local display_name
+  display_name=$(echo "$name" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')
+
+  sed \
+    -e "s/{{OFFICE_NAME}}/$name/g" \
+    -e "s/{{OFFICE_DISPLAY_NAME}}/$display_name/g" \
+    -e "s/{{OFFICE_DESCRIPTION}}/$description/g" \
+    "$skill_template" > "$office_dir/SKILL.md"
+
+  print_success "Oficina '${BOLD}$name${NC}' creada"
+  print_info "Skill: $office_dir/SKILL.md"
+  print_info "Agents: $office_dir/agents/"
+  echo ""
+  print_info "Siguiente paso: ${BOLD}./swarm add-agent $name <agent-name>${NC}"
+}
+
+# ─────────────────────────────────────────────────────────────
+# add-agent: Agrega un agente a una oficina
+# ─────────────────────────────────────────────────────────────
+cmd_add_agent() {
+  local office="${1:-}"
+  local agent_name="${2:-}"
+  local description="${3:-}"
+
+  if [[ -z "$office" || -z "$agent_name" ]]; then
+    print_error "Uso: swarm add-agent <oficina> <agent-name> [\"descripcion\"]"
+    exit 1
+  fi
+
+  local office_dir="$OFFICES_DIR/$office"
+
+  if [[ ! -d "$office_dir" ]]; then
+    print_error "La oficina '$office' no existe. Crea primero: ./swarm new-office $office"
+    exit 1
+  fi
+
+  local agent_file="$office_dir/agents/$agent_name.md"
+
+  if [[ -f "$agent_file" ]]; then
+    print_error "El agente '$agent_name' ya existe en la oficina '$office'"
+    exit 1
+  fi
+
+  local agent_template="$TEMPLATES_DIR/agent.md"
+  if [[ ! -f "$agent_template" ]]; then
+    print_error "Template no encontrado: $agent_template"
+    exit 1
+  fi
+
+  local display_name
+  display_name=$(echo "$agent_name" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')
+
+  sed \
+    -e "s/{{AGENT_NAME}}/$agent_name/g" \
+    -e "s/{{AGENT_DISPLAY_NAME}}/$display_name/g" \
+    -e "s/{{AGENT_DESCRIPTION}}/$description/g" \
+    -e "s/{{OFFICE_NAME}}/$office/g" \
+    "$agent_template" > "$agent_file"
+
+  # Actualizar el roster en el SKILL.md de la oficina
+  _update_office_roster "$office"
+
+  print_success "Agente '${BOLD}$agent_name${NC}' agregado a oficina '${BOLD}$office${NC}'"
+  print_info "Archivo: $agent_file"
+  print_info "Edita el Soul y procedimiento en el archivo antes de instalar"
+}
+
+# ─────────────────────────────────────────────────────────────
+# remove-agent: Elimina un agente de una oficina
+# ─────────────────────────────────────────────────────────────
+cmd_remove_agent() {
+  local office="${1:-}"
+  local agent_name="${2:-}"
+
+  if [[ -z "$office" || -z "$agent_name" ]]; then
+    print_error "Uso: swarm remove-agent <oficina> <agent-name>"
+    exit 1
+  fi
+
+  local agent_file="$OFFICES_DIR/$office/agents/$agent_name.md"
+
+  if [[ ! -f "$agent_file" ]]; then
+    print_error "Agente '$agent_name' no encontrado en oficina '$office'"
+    exit 1
+  fi
+
+  rm "$agent_file"
+  _update_office_roster "$office"
+
+  print_success "Agente '${BOLD}$agent_name${NC}' eliminado de oficina '${BOLD}$office${NC}'"
+}
+
+# ─────────────────────────────────────────────────────────────
+# install: Copia todo a ~/.claude/
+# ─────────────────────────────────────────────────────────────
+cmd_install() {
+  print_header
+  echo -e "  ${BOLD}Instalando oficinas en Claude Code...${NC}"
+  echo ""
+
+  local installed_offices=0
+  local installed_agents=0
+
+  for office_dir in "$OFFICES_DIR"/*/; do
+    [[ ! -d "$office_dir" ]] && continue
+
+    local office_name
+    office_name=$(basename "$office_dir")
+
+    # Instalar skill (oficina)
+    local skill_dest="$CLAUDE_SKILLS/$office_name"
+    mkdir -p "$skill_dest"
+    cp "$office_dir/SKILL.md" "$skill_dest/SKILL.md"
+    print_success "Skill: ${BOLD}$office_name${NC} → $skill_dest/"
+    ((installed_offices++))
+
+    # Instalar agents
+    local agents_dest="$CLAUDE_AGENTS/$office_name"
+    mkdir -p "$agents_dest"
+
+    for agent_file in "$office_dir"/agents/*.md; do
+      [[ ! -f "$agent_file" ]] && continue
+      local agent_basename
+      agent_basename=$(basename "$agent_file")
+      cp "$agent_file" "$agents_dest/$agent_basename"
+      local agent_id="${agent_basename%.md}"
+      print_info "  Agent: ${office_name}:${agent_id}"
+      ((installed_agents++))
+    done
+  done
+
+  echo ""
+
+  # Instalar skills del proyecto (oficina-creator, etc.)
+  local installed_skills=0
+  local skills_src="$SWARM_ROOT/skills"
+  if [[ -d "$skills_src" ]]; then
+    for skill_dir in "$skills_src"/*/; do
+      [[ ! -d "$skill_dir" ]] && continue
+      local skill_name
+      skill_name=$(basename "$skill_dir")
+      local skill_dest="$CLAUDE_SKILLS/$skill_name"
+      mkdir -p "$skill_dest"
+      cp "$skill_dir/SKILL.md" "$skill_dest/SKILL.md"
+      print_success "Skill (core): ${BOLD}$skill_name${NC}"
+      ((installed_skills++))
+    done
+  fi
+
+  echo ""
+
+  if [[ $installed_offices -eq 0 && $installed_skills -eq 0 ]]; then
+    print_warn "No hay oficinas para instalar. Crea una con: ./swarm new-office <nombre>"
+  else
+    print_success "${BOLD}${installed_offices} oficinas${NC}, ${BOLD}${installed_agents} agentes${NC} y ${BOLD}${installed_skills} skills core${NC} instalados"
+    echo ""
+    print_info "Skills en: $CLAUDE_SKILLS/"
+    print_info "Agents en: $CLAUDE_AGENTS/"
+    echo ""
+    print_info "Reinicia Claude Code para que detecte los nuevos agentes"
+  fi
+}
+
+# ─────────────────────────────────────────────────────────────
+# uninstall: Elimina oficinas instaladas de ~/.claude/
+# ─────────────────────────────────────────────────────────────
+cmd_uninstall() {
+  print_header
+  echo -e "  ${BOLD}Desinstalando oficinas de Claude Code...${NC}"
+  echo ""
+
+  for office_dir in "$OFFICES_DIR"/*/; do
+    [[ ! -d "$office_dir" ]] && continue
+
+    local office_name
+    office_name=$(basename "$office_dir")
+
+    # Remover skill
+    if [[ -d "$CLAUDE_SKILLS/$office_name" ]]; then
+      rm -rf "$CLAUDE_SKILLS/$office_name"
+      print_success "Skill removido: $office_name"
+    fi
+
+    # Remover agents
+    if [[ -d "$CLAUDE_AGENTS/$office_name" ]]; then
+      rm -rf "$CLAUDE_AGENTS/$office_name"
+      print_success "Agents removidos: $office_name"
+    fi
+  done
+
+  echo ""
+  print_success "Desinstalacion completa"
+}
+
+# ─────────────────────────────────────────────────────────────
+# list: Muestra todas las oficinas y agentes
+# ─────────────────────────────────────────────────────────────
+cmd_list() {
+  print_header
+
+  local has_offices=false
+
+  for office_dir in "$OFFICES_DIR"/*/; do
+    [[ ! -d "$office_dir" ]] && continue
+    has_offices=true
+
+    local office_name
+    office_name=$(basename "$office_dir")
+
+    # Extraer descripcion del SKILL.md
+    local description=""
+    if [[ -f "$office_dir/SKILL.md" ]]; then
+      description=$(grep -m1 "^description:" "$office_dir/SKILL.md" 2>/dev/null | sed 's/^description: *//' | sed 's/^"//' | sed 's/"$//' || true)
+    fi
+
+    echo -e "  ${PURPLE}◆${NC} ${BOLD}$office_name${NC}"
+    [[ -n "$description" ]] && echo -e "    ${DIM}$description${NC}"
+
+    # Listar agentes
+    local agent_count=0
+    for agent_file in "$office_dir"/agents/*.md; do
+      [[ ! -f "$agent_file" ]] && continue
+      local agent_id
+      agent_id=$(basename "$agent_file" .md)
+
+      local agent_desc=""
+      agent_desc=$(grep -m1 "^description:" "$agent_file" 2>/dev/null | sed 's/^description: *//' | sed 's/^"//' | sed 's/"$//' | head -c 80 || true)
+
+      echo -e "    ${CYAN}├─${NC} $agent_id"
+      [[ -n "$agent_desc" ]] && echo -e "    ${DIM}│  $agent_desc${NC}"
+      ((agent_count++))
+    done
+
+    if [[ $agent_count -eq 0 ]]; then
+      echo -e "    ${DIM}(sin agentes)${NC}"
+    fi
+
+    # Verificar si esta instalada
+    if [[ -d "$CLAUDE_SKILLS/$office_name" ]]; then
+      echo -e "    ${GREEN}● instalada${NC}"
+    else
+      echo -e "    ${DIM}○ no instalada${NC}"
+    fi
+
+    echo ""
+  done
+
+  if [[ "$has_offices" == false ]]; then
+    print_warn "No hay oficinas. Crea una con: ./swarm new-office <nombre>"
+  fi
+}
+
+# ─────────────────────────────────────────────────────────────
+# sync: Regenera el routing table en la memoria global
+# ─────────────────────────────────────────────────────────────
+cmd_sync() {
+  print_header
+  echo -e "  ${BOLD}Sincronizando routing table...${NC}"
+  echo ""
+
+  local memory_dir="$HOME/.claude/projects/-Users-nicolascalderon-Documents-dev-Agent-Swarm-Generator-/memory"
+  mkdir -p "$memory_dir"
+
+  local routing_file="$memory_dir/office_routing.md"
+
+  cat > "$routing_file" << 'HEADER'
+---
+name: office-routing-table
+description: Tabla de routing para las oficinas del Agent Swarm. Indica que skill/oficina usar segun la tarea del usuario.
+type: reference
+---
+
+# Office Routing Table
+
+Cuando el usuario pida una tarea, consulta esta tabla para determinar que oficina (skill) invocar.
+
+HEADER
+
+  for office_dir in "$OFFICES_DIR"/*/; do
+    [[ ! -d "$office_dir" ]] && continue
+
+    local office_name
+    office_name=$(basename "$office_dir")
+
+    local description=""
+    if [[ -f "$office_dir/SKILL.md" ]]; then
+      description=$(grep -m1 "^description:" "$office_dir/SKILL.md" 2>/dev/null | sed 's/^description: *//' | sed 's/^"//' | sed 's/"$//' || true)
+    fi
+
+    echo "## $office_name" >> "$routing_file"
+    echo "- **Skill**: /$office_name" >> "$routing_file"
+    echo "- **Descripcion**: $description" >> "$routing_file"
+    echo "- **Agentes**:" >> "$routing_file"
+
+    for agent_file in "$office_dir"/agents/*.md; do
+      [[ ! -f "$agent_file" ]] && continue
+      local agent_id
+      agent_id=$(basename "$agent_file" .md)
+      local agent_desc=""
+      agent_desc=$(grep -m1 "^description:" "$agent_file" 2>/dev/null | sed 's/^description: *//' | sed 's/^"//' | sed 's/"$//' | head -c 120 || true)
+      echo "  - \`$office_name:$agent_id\`: $agent_desc" >> "$routing_file"
+    done
+
+    echo "" >> "$routing_file"
+
+    print_success "$office_name"
+  done
+
+  # Actualizar MEMORY.md
+  local memory_index="$memory_dir/../memory/MEMORY.md"
+  # Intentar en la ruta correcta
+  memory_index="$memory_dir/MEMORY.md"
+
+  # Si no existe MEMORY.md, buscar o crear
+  local project_memory_dir
+  project_memory_dir=$(dirname "$routing_file")
+
+  # Verificar si ya hay entrada en MEMORY.md
+  if [[ -f "$project_memory_dir/MEMORY.md" ]]; then
+    if ! grep -q "office_routing.md" "$project_memory_dir/MEMORY.md" 2>/dev/null; then
+      echo "- [Office Routing Table](office_routing.md) — Tabla de routing para saber que oficina usar por tarea" >> "$project_memory_dir/MEMORY.md"
+    fi
+  fi
+
+  echo ""
+  print_success "Routing table actualizado en: $routing_file"
+}
+
+# ─────────────────────────────────────────────────────────────
+# Helpers internos
+# ─────────────────────────────────────────────────────────────
+_update_office_roster() {
+  local office="$1"
+  local skill_file="$OFFICES_DIR/$office/SKILL.md"
+
+  [[ ! -f "$skill_file" ]] && return
+
+  # Construir roster en archivo temporal
+  local roster_tmp
+  roster_tmp=$(mktemp)
+
+  for agent_file in "$OFFICES_DIR/$office"/agents/*.md; do
+    [[ ! -f "$agent_file" ]] && continue
+
+    local agent_id
+    agent_id=$(basename "$agent_file" .md)
+
+    local agent_desc=""
+    agent_desc=$(grep -m1 "^description:" "$agent_file" 2>/dev/null | sed 's/^description: *//' | sed 's/^"//' | sed 's/"$//' || true)
+
+    echo "- **${office}:${agent_id}**: ${agent_desc}" >> "$roster_tmp"
+  done
+
+  local out_tmp
+  out_tmp=$(mktemp)
+
+  if grep -q "<!-- ROSTER_START -->" "$skill_file" 2>/dev/null; then
+    # Modo marcadores: reemplazar contenido entre ROSTER_START y ROSTER_END
+    awk -v rfile="$roster_tmp" '
+      /<!-- ROSTER_START -->/ {
+        print
+        while ((getline line < rfile) > 0) print line
+        close(rfile)
+        skip = 1
+        next
+      }
+      /<!-- ROSTER_END -->/ {
+        print
+        skip = 0
+        next
+      }
+      !skip { print }
+    ' "$skill_file" > "$out_tmp"
+    mv "$out_tmp" "$skill_file"
+  elif grep -q "{{AGENT_ROSTER}}" "$skill_file" 2>/dev/null; then
+    # Modo placeholder: reemplazar {{AGENT_ROSTER}} por el roster
+    awk -v rfile="$roster_tmp" '
+      /\{\{AGENT_ROSTER\}\}/ {
+        while ((getline line < rfile) > 0) print line
+        close(rfile)
+        next
+      }
+      { print }
+    ' "$skill_file" > "$out_tmp"
+    mv "$out_tmp" "$skill_file"
+  fi
+
+  rm -f "$roster_tmp"
+
+  # Actualizar la lista de agents permitidos en el frontmatter
+  local agent_ids=""
+  for agent_file in "$OFFICES_DIR/$office"/agents/*.md; do
+    [[ ! -f "$agent_file" ]] && continue
+    local aid
+    aid=$(basename "$agent_file" .md)
+    if [[ -z "$agent_ids" ]]; then
+      agent_ids="$office:$aid"
+    else
+      agent_ids="$agent_ids, $office:$aid"
+    fi
+  done
+
+  # Actualizar allowed-tools con la lista de agents
+  if [[ -n "$agent_ids" ]]; then
+    sed -i '' "s|^allowed-tools:.*|allowed-tools: Agent($agent_ids)|" "$skill_file" 2>/dev/null || true
+  fi
+}
+
+# ─────────────────────────────────────────────────────────────
+# Main dispatcher
+# ─────────────────────────────────────────────────────────────
+cmd_help() {
+  print_header
+  echo -e "  ${BOLD}Uso:${NC} ./swarm <comando> [args]"
+  echo ""
+  echo -e "  ${BOLD}Comandos:${NC}"
+  echo -e "    ${CYAN}new-office${NC}  <nombre> [\"desc\"]     Crea una oficina nueva"
+  echo -e "    ${CYAN}add-agent${NC}   <oficina> <agent> [\"desc\"]  Agrega un agente"
+  echo -e "    ${CYAN}remove-agent${NC} <oficina> <agent>    Elimina un agente"
+  echo -e "    ${CYAN}list${NC}                               Lista oficinas y agentes"
+  echo -e "    ${CYAN}install${NC}                            Instala en ~/.claude/"
+  echo -e "    ${CYAN}uninstall${NC}                          Desinstala de ~/.claude/"
+  echo -e "    ${CYAN}sync${NC}                               Actualiza routing table"
+  echo -e "    ${CYAN}help${NC}                               Muestra esta ayuda"
+  echo ""
+  echo -e "  ${BOLD}Ejemplo:${NC}"
+  echo -e "    ./swarm new-office oficina-revenue \"Estrategia comercial B2B\""
+  echo -e "    ./swarm add-agent oficina-revenue cro-strategist \"Disena sistemas de venta\""
+  echo -e "    ./swarm install"
+  echo ""
+}
+
+main() {
+  local cmd="${1:-help}"
+  shift || true
+
+  case "$cmd" in
+    new-office)    cmd_new_office "$@" ;;
+    add-agent)     cmd_add_agent "$@" ;;
+    remove-agent)  cmd_remove_agent "$@" ;;
+    install)       cmd_install ;;
+    uninstall)     cmd_uninstall ;;
+    list)          cmd_list ;;
+    sync)          cmd_sync ;;
+    help|--help|-h) cmd_help ;;
+    *)
+      print_error "Comando desconocido: $cmd"
+      cmd_help
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"
